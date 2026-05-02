@@ -3,151 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOKA | THE CREATIVE 17</title>
+    <title>MOKA 17 | FINAL VERSION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
     <style>
-        :root { --main: #ff4d6d; --sub: #ffb3c1; --dark: #000; --paper: #fff9c4; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #fff1f2; font-family: 'system-ui', sans-serif; overflow: hidden; perspective: 1200px; }
+        :root { --p: #ff4d6d; --s: #ffb3c1; --d: #000; }
+        
+        html, body { 
+            height: 100%; margin: 0; padding: 0; 
+            overflow: hidden; background: #fff5f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        /* Grid background (image_2.png style) */
-        .bg-canvas { position: fixed; inset: 0; background-image: linear-gradient(var(--sub) 1px, transparent 1px), linear-gradient(90deg, var(--sub) 1px, transparent 1px); background-size: 35px 35px; opacity: 0.25; z-index: -1; }
+        .grid { 
+            position: fixed; inset: 0; 
+            background-image: radial-gradient(var(--s) 1.5px, transparent 1.5px); 
+            background-size: 30px 30px; opacity: 0.3; z-index: -1; 
+        }
 
-        .stage { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        /* حاوية التوسيط المطلق */
+        .container {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .stage { display: none; width: 100%; flex-direction: column; align-items: center; }
         .stage.active { display: flex; }
 
-        /* Home Card */
-        .master-card { background: white; border: 5px solid var(--dark); border-radius: 24px; padding: 40px 20px; text-align: center; box-shadow: 15px 15px 0px var(--dark); width: 300px; position: relative; }
-        .avatar { width: 130px; height: 130px; border-radius: 50%; border: 5px solid var(--dark); margin: -100px auto 20px; background: var(--sub); overflow: hidden; box-shadow: 8px 8px 0px var(--dark); transform: rotate(-5deg); }
-        
-        .creative-btn { width: 100%; padding: 18px; margin-top: 15px; background: white; border: 3px solid var(--dark); border-radius: 14px; font-weight: 900; font-size: 16px; box-shadow: 6px 6px 0px var(--dark); cursor: pointer; transition: 0.1s; }
-        .creative-btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--dark); }
+        /* كارت البروفايل */
+        .card { 
+            background: #fff; border: 4px solid var(--d); 
+            padding: 40px 20px; border-radius: 25px; 
+            box-shadow: 12px 12px 0px var(--d); 
+            width: 85%; max-width: 320px; text-align: center; position: relative;
+        }
 
-        /* Cinema Stage */
-        #cinema { background: var(--dark); z-index: 100; }
-        .cinema-msg { color: white; font-size: 45px; font-weight: 900; position: absolute; text-align: center; width: 80%; opacity: 0; filter: blur(10px); }
-        .heart-pop { position: absolute; font-size: 25px; pointer-events: none; }
+        .photo-frame {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 4px solid var(--d); margin: -100px auto 20px;
+            background: var(--s); overflow: hidden; box-shadow: 5px 5px 0px var(--d);
+        }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Envelope Interaction */
-        .envelope-box { width: 320px; height: 200px; background: white; border: 4px solid var(--dark); position: relative; box-shadow: 12px 12px 0px var(--dark); }
-        .msg-paper { width: 90%; height: 160px; background: var(--paper); border: 3px solid var(--dark); position: absolute; top: 10px; left: 5%; cursor: grab; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .paper-1 { z-index: 10; background: white; }
-        .paper-2 { z-index: 5; }
+        .btn { 
+            width: 100%; padding: 16px; margin-top: 15px; 
+            background: #fff; border: 3px solid var(--d); 
+            border-radius: 15px; font-weight: 900; 
+            box-shadow: 6px 6px 0px var(--d); cursor: pointer;
+            transition: 0.1s; font-size: 16px;
+        }
+        .btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--d); }
 
-        .back-nav { position: fixed; top: 20px; left: 20px; background: var(--dark); color: white; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; z-index: 2000; display: none; }
+        /* مشهد الظرف والورق */
+        .env-box { 
+            width: 300px; height: 180px; background: #fff; 
+            border: 4px solid var(--d); position: relative; 
+            box-shadow: 10px 10px 0px var(--d); 
+        }
+        .paper { 
+            width: 90%; height: 150px; background: #fff9c4; 
+            border: 3px solid var(--d); position: absolute; 
+            top: 10px; left: 5%; cursor: grab; padding: 15px; 
+            box-sizing: border-box; text-align: right;
+        }
+
+        #cinema-overlay { 
+            position: fixed; inset: 0; background: var(--d); 
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+            color: white; font-size: 35px; font-weight: 900; text-align: center;
+        }
+
+        .back-nav { position: fixed; top: 20px; left: 20px; background: var(--d); color: #fff; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; display: none; z-index: 100; }
     </style>
 </head>
 <body>
 
-<div class="bg-canvas"></div>
-<button class="back-nav" id="backBtn" onclick="location.reload()">HOME</button>
+<div class="grid"></div>
+<button class="back-nav" id="backHome" onclick="location.reload()">HOME</button>
 
-<div class="stage active" id="home">
-    <div class="master-card">
-        <div class="avatar"><img src="malouka.jpg" style="width:100%;height:100%;object-fit:cover;"></div>
-        <h1 style="margin:0; font-size: 38px; -webkit-text-stroke: 1.5px var(--dark); color: var(--main);">MOKA 17</h1>
-        <p style="font-weight: 900; color: #555;">SYSTEM: CREATIVE_LOADED</p>
-        <button class="creative-btn" style="background: var(--main); color: white;" onclick="runCinema()">▶ PLAY THE FILM</button>
-        <button class="creative-btn" onclick="switchStage('letterbox')">✉ READ LETTERS</button>
+<div class="container">
+    <div class="stage active" id="home">
+        <div class="card">
+            <div class="photo-frame">
+                <img src="Malouka.jpg" alt="Moka">
+            </div>
+            <h1 style="margin:0; color:var(--p); -webkit-text-stroke: 1px #000; font-size: 32px;">MOKA 17</h1>
+            <button class="btn" style="background:var(--p); color:#fff;" onclick="startCinema()">▶ PLAY FILM</button>
+            <button class="btn" onclick="showStage('letters')">✉ READ LETTERS</button>
+        </div>
+    </div>
+
+    <div class="stage" id="letters">
+        <div class="env-box">
+            <div class="paper" id="p2" style="z-index:1; background:#fdf2f2;">
+                <h3>الرسالة الثانية</h3>
+                <p>17 سنة من السعادة يا ملوكة ❤️</p>
+            </div>
+            <div class="paper" id="p1" style="z-index:2;">
+                <h3>الرسالة الأولى</h3>
+                <p>شدي الورقة دي لفوق بصباعك..</p>
+            </div>
+        </div>
+        <p style="color:var(--p); font-weight:bold; margin-top:20px;">↑ اسحبي الورق للأعلى ↑</p>
     </div>
 </div>
 
-<div class="stage" id="cinema">
-    <div class="cinema-msg" id="m1">READY?</div>
-    <div class="cinema-msg" id="m2">EVERY SECOND...</div>
-    <div class="cinema-msg" id="m3">EVERY MINUTE...</div>
-    <div class="cinema-msg" id="m4" style="color: var(--main); font-size: 80px;">17</div>
-    <div class="cinema-msg" id="m5">HAPPY BIRTHDAY<br>MOKA ❤️</div>
-    <div id="flash" style="position:fixed; inset:0; background:white; opacity:0; z-index:200; pointer-events:none;"></div>
-</div>
-
-<div class="stage" id="letterbox">
-    <div class="envelope-box">
-        <div class="msg-paper paper-2" id="p2">
-            <h2 style="margin:0; color:var(--main)">Letter #2</h2>
-            <p>17 سنة وإنتي أحلى صدفة في حياتي.. كل سنة وإنتي طيبة يا ملوكة.</p>
-        </div>
-        <div class="msg-paper paper-1" id="p1">
-            <h2 style="margin:0; color:var(--main)">Letter #1</h2>
-            <p>يا ملوكة.. أنتي الكود اللي صلح حياتي. شدي الورقة دي لفوق بصباعك!</p>
-        </div>
-    </div>
-    <p style="margin-top: 40px; font-weight: 900; color: var(--main); animation: bounce 1s infinite;">↑ PULL TO READ ↑</p>
+<div id="cinema-overlay">
+    <div id="film-text">3...</div>
 </div>
 
 <script>
     gsap.registerPlugin(Draggable);
 
-    function switchStage(id) {
-        document.getElementById('backBtn').style.display = 'block';
-        const current = document.querySelector('.stage.active');
-        const next = document.getElementById(id);
-        
-        gsap.to(current, { opacity: 0, scale: 0.9, duration: 0.5, onComplete: () => {
-            current.classList.remove('active');
-            next.classList.add('active');
-            gsap.fromTo(next, { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 0.5 });
-            if(id === 'letterbox') initPhysics();
-        }});
+    function showStage(id) {
+        document.getElementById('backHome').style.display = 'block';
+        document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'letters') initDraggable();
     }
 
-    // تجربة الفيلم (Cinematic Sequence)
-    function runCinema() {
-        switchStage('cinema');
+    function startCinema() {
+        const overlay = document.getElementById('cinema-overlay');
+        const fText = document.getElementById('film-text');
+        overlay.style.display = 'flex';
+        
         const tl = gsap.timeline();
-        
-        tl.to("#m1", { opacity: 1, filter: "blur(0px)", duration: 1 })
-          .to("#m1", { opacity: 0, y: -100, duration: 0.5 })
-          .to("#m2", { opacity: 1, filter: "blur(0px)", duration: 1 })
-          .to("#m2", { opacity: 0, x: 100, duration: 0.5 })
-          .to("#m3", { opacity: 1, filter: "blur(0px)", duration: 1 })
-          .to("#m3", { opacity: 0, x: -100, duration: 0.5 })
-          .to("#flash", { opacity: 1, duration: 0.1, yoyo: true, repeat: 1 })
-          .to("#m4", { opacity: 1, filter: "blur(0px)", scale: 1.5, duration: 0.6, ease: "back.out(2)" })
-          .add(() => explodeHearts())
-          .to("#m4", { opacity: 0, scale: 0, duration: 0.5, delay: 1.5 })
-          .to("#m5", { opacity: 1, filter: "blur(0px)", duration: 1.5 });
+        tl.to(fText, { textContent: "2...", duration: 1 })
+          .to(fText, { textContent: "1...", duration: 1 })
+          .to(fText, { textContent: "HAPPY BIRTHDAY MOKA!", scale: 1.2, color: "#ff4d6d", duration: 1.5 })
+          .to(overlay, { opacity: 0, duration: 1, onComplete: () => {
+              overlay.style.display = 'none';
+              document.getElementById('backHome').style.display = 'block';
+          }});
     }
 
-    function explodeHearts() {
-        for(let i=0; i<30; i++) {
-            const h = document.createElement('div');
-            h.className = 'heart-pop';
-            h.innerHTML = "❤️";
-            h.style.left = "50%"; h.style.top = "50%";
-            document.getElementById('cinema').appendChild(h);
-            gsap.to(h, {
-                x: (Math.random() - 0.5) * 500,
-                y: (Math.random() - 0.5) * 700,
-                rotation: Math.random() * 720,
-                opacity: 0,
-                duration: 2,
-                ease: "power2.out"
-            });
-        }
-    }
-
-    // نظام شد الورق (Manual Physics)
-    function initPhysics() {
-        Draggable.create(".msg-paper", {
+    function initDraggable() {
+        Draggable.create(".paper", {
             type: "y",
-            bounds: { minY: -600, maxY: 0 },
-            edgeResistance: 0.6,
+            bounds: { minY: -500, maxY: 0 },
             onDragEnd: function() {
-                if(this.y < -180) {
-                    gsap.to(this.target, { y: -800, rotation: 15, duration: 0.8, ease: "power3.out" });
+                if(this.y < -120) {
+                    gsap.to(this.target, { y: -600, rotation: 10, duration: 0.6 });
                 } else {
-                    gsap.to(this.target, { y: 0, duration: 0.6, ease: "elastic.out(1, 0.7)" });
+                    gsap.to(this.target, { y: 0, duration: 0.4, ease: "back.out(2)" });
                 }
             }
         });
     }
 </script>
-
-<style>
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-</style>
-
 </body>
 </html>
