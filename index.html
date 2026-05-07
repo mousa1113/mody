@@ -191,6 +191,16 @@
     width: min(420px, 85vw);
   }
 
+  /* ── REPLACE THIS PATH WITH YOUR PHOTO ── */
+  /*
+     HOW TO USE YOUR PHOTO:
+     1. Save your photo as  moka.jpg  in the SAME folder as this HTML file
+     2. That's it — the image will appear automatically below
+
+     If your file is named differently (e.g. photo.png), change
+     "moka.jpg" → "photo.png" in the <img> tag inside #photo-frame
+  */
+
   .photo-frame {
     width: 100%;
     aspect-ratio: 3/4;
@@ -245,7 +255,6 @@
     background: linear-gradient(135deg, var(--petal), var(--blush));
     gap: 12px;
     color: var(--deep);
-    position: absolute; top: 0; left: 0; z-index: -1;
   }
   .photo-placeholder .ph-icon { font-size: 3rem; }
   .photo-placeholder .ph-text {
@@ -256,6 +265,30 @@
     padding: 0 20px;
     opacity: 0.7;
   }
+
+  /* Pixel effect canvas overlay */
+  #pixel-canvas {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .pixel-btn {
+    margin-top: 16px;
+    background: none;
+    border: 1.5px solid var(--deep);
+    color: var(--deep);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    cursor: none;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .pixel-btn:hover { background: var(--deep); color: var(--white); }
 
   /* ═══════════════════════════════════════════════════
      SECTION 3 — ENVELOPE / MESSAGES
@@ -276,6 +309,7 @@
     margin-bottom: 8px;
   }
 
+  /* ─── ENVELOPE ─── */
   .envelope-wrap {
     perspective: 900px;
     cursor: none;
@@ -290,6 +324,7 @@
   }
   .envelope.open { transform: rotateX(10deg) scale(0.95); }
 
+  /* envelope body */
   .env-body {
     position: absolute; inset: 0;
     background: var(--blush);
@@ -299,6 +334,7 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  /* wax seal */
   .wax-seal {
     width: 64px; height: 64px;
     border-radius: 50%;
@@ -310,9 +346,11 @@
     color: var(--white);
     box-shadow: 0 4px 16px rgba(194,24,91,0.4);
     transition: transform 0.3s;
-    position: relative; z-index: 5;
+    position: relative; z-index: 2;
   }
+  .envelope:not(.open) .wax-seal:hover { transform: scale(1.08); }
 
+  /* envelope flap */
   .env-flap {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -327,6 +365,7 @@
     transform: rotateX(-170deg);
   }
 
+  /* envelope letter peek */
   .env-letter {
     position: absolute;
     bottom: 0; left: 10%; right: 10%;
@@ -343,6 +382,29 @@
   }
   .envelope.open .env-letter { transform: translateY(20%); }
 
+  .env-letter .letter-name {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--deep);
+  }
+  .env-letter .letter-text {
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: var(--ink);
+    opacity: 0.8;
+  }
+
+  /* open hint */
+  .open-hint {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-top: 12px;
+  }
+
+  /* messages grid (revealed after opening) */
   .messages-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -353,7 +415,6 @@
     transform: translateY(24px);
     transition: opacity 0.6s 0.4s, transform 0.6s 0.4s;
     pointer-events: none;
-    margin-top: 40px;
   }
   .messages-grid.visible {
     opacity: 1;
@@ -367,139 +428,875 @@
     padding: 24px 20px;
     box-shadow: 0 4px 24px var(--shadow);
     border-left: 3px solid var(--rose);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .msg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px var(--shadow);
+  }
+  .msg-card .msg-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-style: italic;
+    color: var(--petal);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .msg-card p {
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: var(--ink);
+    opacity: 0.85;
   }
 
   /* ═══════════════════════════════════════════════════
-     SECTION 4, 5, 6 — GAMES
+     SECTION 4 — GAME: CATCH THE STARS
   ═══════════════════════════════════════════════════ */
-  #game-section, #memory-section, #type-section {
-    flex-direction: column; padding: 80px 20px; gap: 24px;
+  #game-section {
+    background: var(--blush);
+    flex-direction: column;
+    padding: 60px 20px;
+    gap: 20px;
   }
-  #game-canvas { border: 1.5px solid var(--rose); background: var(--soft); max-width: 100%; }
-  
-  .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 360px; }
-  .memory-card { aspect-ratio: 1; perspective: 400px; cursor: none; }
-  .memory-inner { width: 100%; height: 100%; transform-style: preserve-3d; transition: 0.5s; position: relative; }
+
+  #game-canvas {
+    border: 1.5px solid var(--rose);
+    border-radius: 6px;
+    background: var(--soft);
+    display: block;
+    cursor: none;
+    touch-action: none;
+    max-width: 100%;
+  }
+
+  .game-ui {
+    display: flex; align-items: center; gap: 24px;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .game-score { color: var(--deep); font-weight: 600; }
+
+  .btn-pink {
+    background: var(--deep);
+    color: var(--white);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    border-radius: 2px;
+    cursor: none;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .btn-pink:hover { background: #c2185b; transform: translateY(-1px); }
+
+  /* ═══════════════════════════════════════════════════
+     SECTION 5 — GAME: MEMORY / FLIP CARDS
+  ═══════════════════════════════════════════════════ */
+  #memory-section {
+    background: var(--soft);
+    flex-direction: column;
+    padding: 80px 20px;
+    gap: 28px;
+  }
+
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .memory-card {
+    aspect-ratio: 1;
+    perspective: 400px;
+    cursor: none;
+  }
+
+  .memory-inner {
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.23,1,.32,1);
+    position: relative;
+  }
   .memory-card.flipped .memory-inner { transform: rotateY(180deg); }
-  .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
-  .card-front { background: var(--blush); }
-  .card-back { background: var(--white); transform: rotateY(180deg); border: 1.5px solid var(--rose); }
+  .memory-card.matched .memory-inner { transform: rotateY(180deg); }
+  .memory-card.matched .card-back { background: var(--rose); }
+
+  .card-front, .card-back {
+    position: absolute; inset: 0;
+    border-radius: 6px;
+    backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+  }
+  .card-front {
+    background: var(--blush);
+    border: 1.5px solid var(--petal);
+    color: var(--rose);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-style: italic;
+  }
+  .card-back {
+    background: var(--white);
+    border: 1.5px solid var(--rose);
+    transform: rotateY(180deg);
+    box-shadow: 0 4px 16px var(--shadow);
+  }
+
+  .memory-status {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rose);
+    text-align: center;
+  }
 
   /* ═══════════════════════════════════════════════════
-     NAV & ANIMATIONS
+     SECTION 6 — TYPING GAME
   ═══════════════════════════════════════════════════ */
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  #type-section {
+    background: var(--blush);
+    flex-direction: column;
+    padding: 80px 20px;
+    gap: 24px;
+  }
+
+  .type-display {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-style: italic;
+    text-align: center;
+    color: var(--ink);
+    max-width: 520px;
+    line-height: 1.5;
+    min-height: 2.5em;
+    position: relative;
+  }
+
+  .type-char { display: inline; transition: color 0.1s; }
+  .type-char.correct { color: var(--deep); }
+  .type-char.wrong { color: #e57373; }
+  .type-char.cursor-pos {
+    border-bottom: 2px solid var(--deep);
+  }
+
+  .type-input {
+    background: var(--white);
+    border: 1.5px solid var(--rose);
+    border-radius: 4px;
+    padding: 12px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink);
+    width: min(400px, 90vw);
+    outline: none;
+    cursor: none;
+    text-align: center;
+    caret-color: var(--deep);
+  }
+  .type-input:focus { border-color: var(--deep); }
+
+  .type-stats {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rose);
+    text-align: center;
+  }
+
+  /* ═══════════════════════════════════════════════════
+     SECTION 7 — OUTRO
+  ═══════════════════════════════════════════════════ */
+  #outro {
+    background: var(--soft);
+    flex-direction: column;
+    padding: 80px 20px;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .outro-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(6rem, 20vw, 14rem);
+    font-weight: 600;
+    font-style: italic;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--rose);
+    line-height: 0.9;
+    position: relative;
+  }
+  .outro-number::after {
+    content: attr(data-n);
+    position: absolute; inset: 0;
+    color: var(--petal);
+    opacity: 0;
+    transition: opacity 0.3s;
+    -webkit-text-stroke: 0;
+  }
+  .outro-number:hover::after { opacity: 0.4; }
+
+  .outro-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    color: var(--ink);
+    opacity: 0.7;
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  /* ═══════════════════════════════════════════════════
+     ANIMATIONS
+  ═══════════════════════════════════════════════════ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
   @keyframes floatPetal {
-    0% { transform: translate(0, 110vh) rotate(0deg); opacity: 0; }
-    10% { opacity: 0.6; }
+    0%   { transform: translate(0, 110vh) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.4; }
     100% { transform: translate(var(--drift), -10vh) rotate(360deg); opacity: 0; }
   }
 
+  /* ═══════════════════════════════════════════════════
+     NAV
+  ═══════════════════════════════════════════════════ */
   #nav {
-    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 52px;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 32px; z-index: 100; background: rgba(255,240,245,0.8);
-    backdrop-filter: blur(12px); border-bottom: 1px solid rgba(244,143,177,0.2);
-    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rose);
+    padding: 0 32px;
+    z-index: 100;
+    background: rgba(255,240,245,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(244,143,177,0.2);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rose);
   }
-  #nav a { color: var(--rose); text-decoration: none; margin-left: 20px; }
+
+  #nav a {
+    color: var(--rose);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: none;
+  }
+  #nav a:hover { color: var(--deep); }
+
+  .nav-links { display: flex; gap: 24px; }
+
+  /* responsive */
+  @media (max-width: 480px) {
+    .nav-links { display: none; }
+    .memory-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 280px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Cursor -->
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
 
+<!-- Confetti canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- NAV -->
 <nav id="nav">
   <span>Moka &amp; Malouka</span>
   <div class="nav-links">
     <a href="#hero">Start</a>
     <a href="#photo-section">Photo</a>
     <a href="#envelope-section">Message</a>
+    <a href="#game-section">Game 1</a>
+    <a href="#memory-section">Game 2</a>
+    <a href="#type-section">Game 3</a>
   </div>
 </nav>
 
+<!-- ════════════════════════════════════════
+     SECTION 1 — HERO
+════════════════════════════════════════ -->
 <section id="hero">
   <div class="petal-bg" id="petalBg"></div>
+
   <p class="hero-tag">17 — a milestone, compiled</p>
-  <h1 class="hero-name">Moka <em>&amp; Malouka</em></h1>
+
+  <h1 class="hero-name">
+    Moka
+    <em>&amp; Malouka</em>
+  </h1>
+
   <div class="age-badge">17</div>
+
   <p class="hero-scroll">scroll to explore</p>
 </section>
 
+<!-- ════════════════════════════════════════
+     SECTION 2 — PHOTO
+════════════════════════════════════════ -->
 <section id="photo-section">
   <p class="photo-label">// captured.moment</p>
+
   <div class="photo-frame-outer">
     <div class="photo-frame" id="photoFrame">
-      <img src="moka.jpg" alt="Moka" onerror="this.style.display='none';">
-      <div class="photo-placeholder">
-        <span class="ph-icon">✿</span>
-        <p class="ph-text">Place "moka.jpg" in the folder</p>
+
+      <!-- ┌─────────────────────────────────────────┐
+           │  PUT YOUR PHOTO HERE                    │
+           │                                         │
+           │  1. Save photo as  moka.jpg             │
+           │     in the SAME folder as this file     │
+           │                                         │
+           │  2. The image below will show it        │
+           │     automatically                       │
+           │                                         │
+           │  3. If using a different filename,      │
+           │     change  "moka.jpg"  on the next     │
+           │     line to match your filename          │
+           └─────────────────────────────────────────┘ -->
+
+      <img src="moka.jpg" alt="Moka & Malouka"
+           onerror="this.style.display='none'; document.getElementById('photoPH').style.display='flex';"
+           id="photoImg" />
+
+      <div class="photo-placeholder" id="photoPH" style="display:none;">
+        <div class="ph-icon">🌸</div>
+        <div class="ph-text">
+          Place your photo here<br/>
+          <strong>→ save as  moka.jpg</strong><br/>
+          in the same folder
+        </div>
       </div>
-      <div class="photo-corner tl"></div>
-      <div class="photo-corner tr"></div>
-      <div class="photo-corner bl"></div>
-      <div class="photo-corner br"></div>
+
+      <canvas id="pixel-canvas"></canvas>
     </div>
+
+    <div class="photo-corner tl"></div>
+    <div class="photo-corner tr"></div>
+    <div class="photo-corner bl"></div>
+    <div class="photo-corner br"></div>
   </div>
+
+  <button class="pixel-btn" id="pixelBtn">✦ pixel mode</button>
 </section>
 
+<!-- ════════════════════════════════════════
+     SECTION 3 — ENVELOPE
+════════════════════════════════════════ -->
 <section id="envelope-section">
-  <h2 class="section-title">A Digital Letter</h2>
-  <div class="envelope-wrap" onclick="openEnvelope()">
+  <h2 class="section-title">Open this.</h2>
+
+  <div class="envelope-wrap" id="envelopeWrap">
     <div class="envelope" id="envelope">
+      <div class="env-body">
+        <div class="wax-seal">M</div>
+      </div>
       <div class="env-flap"></div>
-      <div class="env-body"><div class="wax-seal">M</div></div>
       <div class="env-letter">
-        <span class="letter-name">To Malouka,</span>
-        <p class="letter-text">Happy 17th Birthday!<br>A year of code and joy.</p>
+        <span class="letter-name">Moka &amp; Malouka</span>
+        <p class="letter-text">17 things worth knowing.</p>
       </div>
     </div>
   </div>
-  <div class="messages-grid" id="msgGrid">
-    <div class="msg-card"><p>Keep shining and coding your dreams.</p></div>
-    <div class="msg-card"><p>17 is just the beginning.</p></div>
+
+  <p class="open-hint" id="openHint">— click to open —</p>
+
+  <!-- ══ MESSAGES — EDIT THESE ══ -->
+  <div class="messages-grid" id="messagesGrid">
+
+    <div class="msg-card">
+      <div class="msg-num">01</div>
+      <p>You made it to 17. That alone deserves a standing ovation.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">02</div>
+      <p>Every line of code you write rewrites the room you walk into.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">03</div>
+      <p>Seventeen felt impossible once. You built it, anyway.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">04</div>
+      <p>There is no one else in this entire runtime like you.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">05</div>
+      <p>You debug the hard stuff — in code and in life — without asking for a hint.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">06</div>
+      <p>Malouka — the name fits. Sweet and sharp in exactly the right order.</p>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-num">07</div>
+      <p>Most people write hello world. You wrote something the world actually needed.</p>
+    </div>
+
+    <!-- ── Add or change messages here ── -->
+
   </div>
 </section>
 
+<!-- ════════════════════════════════════════
+     SECTION 4 — GAME: CATCH STARS
+════════════════════════════════════════ -->
+<section id="game-section">
+  <h2 class="section-title">Catch them.</h2>
+
+  <div class="game-ui">
+    <span>Score: <span class="game-score" id="gameScore">0</span></span>
+    <span>Time: <span class="game-score" id="gameTime">30</span>s</span>
+    <button class="btn-pink" id="gameStartBtn">Start</button>
+  </div>
+
+  <canvas id="game-canvas" width="480" height="320"></canvas>
+  <p style="font-size:0.62rem;letter-spacing:0.18em;color:var(--rose);text-transform:uppercase;">
+    Move mouse / finger to catch ✦ stars
+  </p>
+</section>
+
+<!-- ════════════════════════════════════════
+     SECTION 5 — GAME: MEMORY
+════════════════════════════════════════ -->
+<section id="memory-section">
+  <h2 class="section-title">Remember.</h2>
+  <p class="memory-status" id="memStatus">Flip to match the pairs.</p>
+  <div class="memory-grid" id="memoryGrid"></div>
+  <button class="btn-pink" id="memRestart">Restart</button>
+</section>
+
+<!-- ════════════════════════════════════════
+     SECTION 6 — TYPING GAME
+════════════════════════════════════════ -->
+<section id="type-section">
+  <h2 class="section-title">Type it.</h2>
+
+  <div class="type-display" id="typeDisplay"></div>
+  <p class="type-stats" id="typeStats">WPM: — &nbsp;|&nbsp; Accuracy: —</p>
+  <input class="type-input" id="typeInput" placeholder="start typing…" autocomplete="off" spellcheck="false"/>
+  <button class="btn-pink" id="typeRestart">New Phrase</button>
+</section>
+
+<!-- ════════════════════════════════════════
+     SECTION 7 — OUTRO
+════════════════════════════════════════ -->
+<section id="outro">
+  <div class="outro-number" data-n="17">17</div>
+  <p class="outro-sub">Compiled. Executed. Celebrated.</p>
+  <p style="font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--rose);">
+    Happy Birthday, Moka &amp; Malouka ✦
+  </p>
+  <button class="btn-pink" id="confettiBtn">✦ celebrate</button>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
 <script>
-  // Cursor Logic
-  const cursor = document.getElementById('cursor');
-  const ring = document.getElementById('cursor-ring');
-  document.addEventListener('mousemove', (e) => {
-    cursor.style.transform = `translate(${e.clientX - 7}px, ${e.clientY - 7}px)`;
-    ring.style.transform = `translate(${e.clientX - 18}px, ${e.clientY - 18}px)`;
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = -100, my = -100, rx = -100, ry = -100;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function moveCursor() {
+  rx += (mx - rx) * 0.18;
+  ry += (my - ry) * 0.18;
+  cur.style.transform  = `translate(${mx - 7}px, ${my - 7}px)`;
+  ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
+  requestAnimationFrame(moveCursor);
+})();
+
+/* ── PETALS ── */
+const petalBg = document.getElementById('petalBg');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'petal';
+  const size = 6 + Math.random() * 10;
+  p.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random() * 100}%;
+    --drift:${(Math.random() - 0.5) * 120}px;
+    animation-duration:${8 + Math.random() * 12}s;
+    animation-delay:${Math.random() * 10}s;
+    background:hsl(${340 + Math.random()*20},${60 + Math.random()*30}%,${80 + Math.random()*10}%);
+    opacity:0;
+  `;
+  petalBg.appendChild(p);
+}
+
+/* ── ENVELOPE ── */
+const envelope   = document.getElementById('envelope');
+const openHint   = document.getElementById('openHint');
+const msgGrid    = document.getElementById('messagesGrid');
+let envelopeOpen = false;
+
+document.getElementById('envelopeWrap').addEventListener('click', () => {
+  if (envelopeOpen) return;
+  envelopeOpen = true;
+  envelope.classList.add('open');
+  openHint.style.opacity = '0';
+  setTimeout(() => {
+    msgGrid.classList.add('visible');
+    openHint.textContent = '— messages unlocked —';
+    openHint.style.opacity = '1';
+  }, 900);
+});
+
+/* ── PIXEL PHOTO ── */
+const pixelBtn    = document.getElementById('pixelBtn');
+const pixelCanvas = document.getElementById('pixel-canvas');
+const photoImg    = document.getElementById('photoImg');
+let pixelOn = false;
+
+pixelBtn.addEventListener('click', () => {
+  if (photoImg.style.display === 'none') return; // no real image
+  const frame = document.getElementById('photoFrame');
+  const w = frame.offsetWidth, h = frame.offsetHeight;
+
+  if (!pixelOn) {
+    pixelCanvas.width  = w;
+    pixelCanvas.height = h;
+    const ctx = pixelCanvas.getContext('2d');
+    const tmp = document.createElement('canvas');
+    tmp.width = 40; tmp.height = Math.round(40 * h / w);
+    const tctx = tmp.getContext('2d');
+    tctx.drawImage(photoImg, 0, 0, tmp.width, tmp.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(tmp, 0, 0, w, h);
+    pixelCanvas.style.opacity = '1';
+    pixelBtn.textContent = '✦ normal mode';
+    pixelOn = true;
+  } else {
+    pixelCanvas.style.opacity = '0';
+    pixelBtn.textContent = '✦ pixel mode';
+    pixelOn = false;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   GAME 1 — CATCH THE STARS
+═══════════════════════════════════════════════ */
+const gc     = document.getElementById('game-canvas');
+const gctx   = gc.getContext('2d');
+const scoreEl = document.getElementById('gameScore');
+const timeEl  = document.getElementById('gameTime');
+const startBtn = document.getElementById('gameStartBtn');
+
+let gRunning = false, gScore = 0, gTime = 30;
+let gStars = [], gBasket = { x: 240, y: 290, w: 60, h: 12 };
+let gInterval = null, gRAF = null;
+
+function makeGStar() {
+  return {
+    x: 20 + Math.random() * (gc.width - 40),
+    y: -10,
+    vy: 1.4 + Math.random() * 2.2,
+    r: 6 + Math.random() * 6,
+    hue: 330 + Math.random() * 30,
+    spin: 0,
+    ds: (Math.random() - 0.5) * 0.1
+  };
+}
+
+function drawStar(ctx, cx, cy, r, spikes, rot) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+  ctx.beginPath();
+  for (let i = 0; i < spikes * 2; i++) {
+    const rad = i % 2 === 0 ? r : r * 0.45;
+    const a = (Math.PI / spikes) * i;
+    ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+  }
+  ctx.closePath(); ctx.restore();
+}
+
+function gLoop() {
+  gctx.clearRect(0, 0, gc.width, gc.height);
+
+  // basket
+  gctx.fillStyle = '#f48fb1';
+  gctx.beginPath();
+  gctx.roundRect(gBasket.x - gBasket.w / 2, gBasket.y, gBasket.w, gBasket.h, 6);
+  gctx.fill();
+
+  // stars
+  for (let i = gStars.length - 1; i >= 0; i--) {
+    const s = gStars[i];
+    s.y += s.vy;
+    s.spin += s.ds;
+
+    // catch
+    if (
+      s.y + s.r >= gBasket.y &&
+      s.y - s.r <= gBasket.y + gBasket.h &&
+      s.x >= gBasket.x - gBasket.w / 2 - s.r &&
+      s.x <= gBasket.x + gBasket.w / 2 + s.r
+    ) {
+      gScore++;
+      scoreEl.textContent = gScore;
+      gStars.splice(i, 1);
+      continue;
+    }
+
+    if (s.y > gc.height + 10) { gStars.splice(i, 1); continue; }
+
+    gctx.save();
+    gctx.fillStyle = `hsl(${s.hue}, 80%, 70%)`;
+    drawStar(gctx, s.x, s.y, s.r, 5, s.spin);
+    gctx.fill();
+    gctx.restore();
+  }
+
+  if (Math.random() < 0.04) gStars.push(makeGStar());
+  if (gRunning) gRAF = requestAnimationFrame(gLoop);
+}
+
+function startGame() {
+  gScore = 0; gTime = 30; gStars = [];
+  scoreEl.textContent = 0; timeEl.textContent = 30;
+  startBtn.textContent = 'Running…';
+  startBtn.disabled = true;
+  gRunning = true;
+  clearInterval(gInterval);
+  gInterval = setInterval(() => {
+    gTime--;
+    timeEl.textContent = gTime;
+    if (gTime <= 0) {
+      gRunning = false;
+      clearInterval(gInterval);
+      cancelAnimationFrame(gRAF);
+      gctx.clearRect(0, 0, gc.width, gc.height);
+      gctx.fillStyle = '#c2185b';
+      gctx.font = 'italic 1.2rem "Playfair Display", serif';
+      gctx.textAlign = 'center';
+      gctx.fillText(`Caught ${gScore} stars ✦`, gc.width / 2, gc.height / 2);
+      startBtn.textContent = 'Play again';
+      startBtn.disabled = false;
+    }
+  }, 1000);
+  gLoop();
+}
+
+startBtn.addEventListener('click', startGame);
+
+// basket movement
+gc.addEventListener('mousemove', e => {
+  const r = gc.getBoundingClientRect();
+  gBasket.x = e.clientX - r.left;
+});
+gc.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const r = gc.getBoundingClientRect();
+  gBasket.x = e.touches[0].clientX - r.left;
+}, { passive: false });
+
+// draw idle state
+gctx.fillStyle = '#f48fb1';
+gctx.font = 'italic 1rem "Playfair Display", serif';
+gctx.textAlign = 'center';
+gctx.fillText('Press Start ✦', gc.width / 2, gc.height / 2);
+
+/* ═══════════════════════════════════════════════
+   GAME 2 — MEMORY
+═══════════════════════════════════════════════ */
+const emojis = ['🌸','✦','🦋','🎀','🌙','💎','🪷','🍓'];
+let memCards = [], memFlipped = [], memMatched = 0, memLock = false;
+
+function buildMemory() {
+  const grid = document.getElementById('memoryGrid');
+  const statEl = document.getElementById('memStatus');
+  grid.innerHTML = '';
+  memFlipped = []; memMatched = 0; memLock = false;
+  statEl.textContent = 'Flip to match the pairs.';
+
+  const deck = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+  memCards = [];
+
+  deck.forEach((e, i) => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.innerHTML = `
+      <div class="memory-inner">
+        <div class="card-front">M</div>
+        <div class="card-back">${e}</div>
+      </div>`;
+    card.dataset.emoji = e;
+    card.dataset.idx   = i;
+    card.addEventListener('click', () => flipCard(card, statEl));
+    grid.appendChild(card);
+    memCards.push(card);
+  });
+}
+
+function flipCard(card, statEl) {
+  if (memLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  memFlipped.push(card);
+
+  if (memFlipped.length === 2) {
+    memLock = true;
+    const [a, b] = memFlipped;
+    if (a.dataset.emoji === b.dataset.emoji) {
+      a.classList.add('matched'); b.classList.add('matched');
+      memMatched++;
+      memFlipped = []; memLock = false;
+      if (memMatched === emojis.length) {
+        statEl.textContent = '✦ All matched! You remember everything.';
+        triggerConfetti();
+      }
+    } else {
+      setTimeout(() => {
+        a.classList.remove('flipped'); b.classList.remove('flipped');
+        memFlipped = []; memLock = false;
+      }, 900);
+    }
+  }
+}
+
+document.getElementById('memRestart').addEventListener('click', buildMemory);
+buildMemory();
+
+/* ═══════════════════════════════════════════════
+   GAME 3 — TYPING
+═══════════════════════════════════════════════ */
+const typePhrases = [
+  "Seventeen is just the beginning of everything you'll compile.",
+  "Moka and Malouka — two names, one outstanding story.",
+  "Build the world you want. You already have the tools.",
+  "Debug life like you debug code: one line at a time.",
+  "Every error is a clue. Every clue leads forward.",
+  "The best version ships when you stop waiting for perfect.",
+  "Happy seventeenth, Malouka. The terminal is yours."
+];
+
+let typeTarget = '', typeStart = null, typeChars = [];
+
+function loadPhrase() {
+  typeTarget = typePhrases[Math.floor(Math.random() * typePhrases.length)];
+  const display = document.getElementById('typeDisplay');
+  display.innerHTML = '';
+  typeChars = [];
+  typeTarget.split('').forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'type-char' + (i === 0 ? ' cursor-pos' : '');
+    span.textContent = ch;
+    display.appendChild(span);
+    typeChars.push(span);
+  });
+  document.getElementById('typeInput').value = '';
+  document.getElementById('typeStats').textContent = 'WPM: — | Accuracy: —';
+  typeStart = null;
+}
+
+document.getElementById('typeInput').addEventListener('input', e => {
+  const val = e.target.value;
+  if (!typeStart && val.length > 0) typeStart = Date.now();
+
+  let correct = 0;
+  typeChars.forEach((span, i) => {
+    span.classList.remove('correct', 'wrong', 'cursor-pos');
+    if (i < val.length) {
+      span.classList.add(val[i] === typeTarget[i] ? 'correct' : 'wrong');
+      if (val[i] === typeTarget[i]) correct++;
+    } else if (i === val.length) {
+      span.classList.add('cursor-pos');
+    }
   });
 
-  // Petals Logic
-  const petalBg = document.getElementById('petalBg');
-  function createPetal() {
-    const p = document.createElement('div');
-    p.className = 'petal';
-    p.style.left = Math.random() * 100 + 'vw';
-    p.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
-    p.style.animationDuration = (Math.random() * 2 + 3) + 's';
-    petalBg.appendChild(p);
-    setTimeout(() => p.remove(), 5000);
-  }
-  setInterval(createPetal, 300);
-
-  // Envelope Logic
-  function openEnvelope() {
-    const env = document.getElementById('envelope');
-    const grid = document.getElementById('msgGrid');
-    env.classList.toggle('open');
-    if(env.classList.contains('open')) grid.classList.add('visible');
+  if (val.length > 0 && typeStart) {
+    const mins = (Date.now() - typeStart) / 60000;
+    const wpm  = Math.round((val.length / 5) / mins);
+    const acc  = Math.round((correct / val.length) * 100);
+    document.getElementById('typeStats').textContent = `WPM: ${wpm} | Accuracy: ${acc}%`;
   }
 
-  // Smooth Scroll
-  document.querySelectorAll('#nav a').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
-    });
+  if (val === typeTarget) {
+    document.getElementById('typeStats').textContent += ' — Complete! ✦';
+    triggerConfetti();
+    setTimeout(loadPhrase, 1400);
+  }
+});
+
+document.getElementById('typeRestart').addEventListener('click', loadPhrase);
+loadPhrase();
+
+/* ═══════════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════════ */
+const cc = document.getElementById('confetti-canvas');
+const cctx = cc.getContext('2d');
+let confParts = [];
+
+function triggerConfetti() {
+  cc.width  = window.innerWidth;
+  cc.height = window.innerHeight;
+  cc.style.opacity = '1';
+  confParts = Array.from({ length: 90 }, () => ({
+    x: Math.random() * cc.width,
+    y: Math.random() * cc.height - cc.height,
+    vx: (Math.random() - 0.5) * 3,
+    vy: 2 + Math.random() * 4,
+    r: 4 + Math.random() * 5,
+    hue: 310 + Math.random() * 60,
+    rot: Math.random() * 360,
+    dr: (Math.random() - 0.5) * 4,
+    shape: Math.random() < 0.5 ? 'rect' : 'star'
+  }));
+  confLoop();
+  setTimeout(() => { cc.style.opacity = '0'; confParts = []; }, 2800);
+}
+
+function confLoop() {
+  cctx.clearRect(0, 0, cc.width, cc.height);
+  confParts.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.rot += p.dr;
+    cctx.save();
+    cctx.translate(p.x, p.y); cctx.rotate(p.rot * Math.PI / 180);
+    cctx.fillStyle = `hsl(${p.hue},80%,70%)`;
+    if (p.shape === 'rect') {
+      cctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.5);
+    } else {
+      drawStar(cctx, 0, 0, p.r, 4, 0);
+      cctx.fill();
+    }
+    cctx.restore();
   });
+  if (confParts.length > 0 && confParts.some(p => p.y < cc.height + 20))
+    requestAnimationFrame(confLoop);
+}
+
+document.getElementById('confettiBtn').addEventListener('click', triggerConfetti);
+
+/* ── scroll-reveal for cards ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting) en.target.style.animation = 'fadeUp 0.7s forwards';
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.msg-card').forEach(c => observer.observe(c));
 </script>
-
 </body>
 </html>
